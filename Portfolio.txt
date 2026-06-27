@@ -1,0 +1,56 @@
+local Players = game:GetService("Players")
+local Runservice = game:GetService("RunService")
+
+local Monster = script.Parent
+local Humanoid = Monster:WaitForChild("Humanoid")
+local hrp = Monster:WaitForChild("HumanoidRootPart")
+
+Humanoid.WalkSpeed = 10
+
+local function DetectClosestPlayer()
+	local closestPlayer = nil
+	local closestDistanceMax = 20
+	
+	for _, player in ipairs(Players:GetPlayers()) do
+		local char = player.Character
+		local playersRoot = char and char:FindFirstChild("HumanoidRootPart")
+
+		if playersRoot then
+			local distance = (playersRoot.Position - hrp.Position).Magnitude
+
+			if distance < closestDistanceMax then
+				closestDistanceMax = distance
+				closestPlayer = player
+			end
+		end
+	end
+
+	return closestPlayer
+end
+
+Runservice.Heartbeat:Connect(function()
+	if Humanoid.Health <= 0 then
+		return
+	end
+	
+	local closestPlayer = DetectClosestPlayer()
+	
+	if closestPlayer == nil then
+		return
+	end
+	
+	local char = closestPlayer.Character
+	
+	if not char then return end
+
+	local closestPlayerHumanoid = char:FindFirstChild("Humanoid")
+	local closestPlayerHrp = char:FindFirstChild("HumanoidRootPart")
+
+	if not closestPlayerHumanoid or not closestPlayerHrp then return end
+	
+	if closestPlayerHumanoid.Health <= 0 then
+		return
+	end
+	
+	Humanoid:MoveTo(closestPlayerHrp.Position)
+end)
