@@ -1,0 +1,60 @@
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+local uis = game:GetService("UserInputService")
+local holdingmouse = false
+local runservice = game:GetService("RunService")
+local connection
+local held
+local holdingsonsomething = false
+uis.InputBegan:Connect(function(input, gamepros)
+	if gamepros then return end
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		holdingmouse = true
+		local mouset = mouse.Target
+		if mouset == nil then
+			return
+		end
+		if mouset 
+			and mouset.Name == "IceCube" 
+			or mouset.Name == "UncookedspaceChicken" 
+			or mouset.Name == "CookedSpaceChicken" then
+			game.ReplicatedStorage.GrabEvent:FireServer("holding", mouset)
+			held = mouset
+			holdingsonsomething = true
+			connection = runservice.RenderStepped:Connect(function()
+					local targetPos =
+						player.Character.HumanoidRootPart.CFrame +
+						player.Character.HumanoidRootPart.CFrame.LookVector * 6
+				game.ReplicatedStorage.renderin:FireServer(targetPos, mouset)
+			end)
+		else
+			warn("nothing found")
+		end
+	end
+end)
+
+uis.InputEnded:Connect(function(input, gamepros)
+	if gamepros then return end
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		if holdingsonsomething == true then
+		holdingsonsomething = false
+		holdingmouse = false
+		game.ReplicatedStorage.GrabEvent:FireServer("letgo", held)
+		if connection then
+		connection:Disconnect()
+			end
+		end
+	end
+end)
+
+player:WaitForChild("inzone").Changed:Connect(function(value)
+	if player.inzone.Value == false then
+			game.Workspace:WaitForChild("generator"):WaitForChild("thing"):WaitForChild("Displayname").Enabled = true
+			game.Workspace:WaitForChild("generator"):WaitForChild("thing"):WaitForChild("Displaybar").Enabled = false
+			game.Workspace:WaitForChild("generator"):WaitForChild("thing"):WaitForChild("DisplayLevel").Enabled = false
+	elseif player.inzone.Value == true then
+			game.Workspace:WaitForChild("generator"):WaitForChild("thing"):WaitForChild("Displayname").Enabled = false
+			game.Workspace:WaitForChild("generator"):WaitForChild("thing"):WaitForChild("Displaybar").Enabled = true
+			game.Workspace:WaitForChild("generator"):WaitForChild("thing"):WaitForChild("DisplayLevel").Enabled = true
+	end
+end)
